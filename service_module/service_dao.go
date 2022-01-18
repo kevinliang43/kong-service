@@ -1,4 +1,4 @@
-package service_manager
+package service_module
 
 import (
 	"database/sql"

@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"dev/kong-service/config"
-	"dev/kong-service/service_manager"
+	"dev/kong-service/service_module"
 	"fmt"
 	"log"
 	"strconv"
@@ -25,7 +25,7 @@ func main() {
 func setupServer(configuration config.ServerConfig, database *sql.DB) {
 
 	serverPath := fmt.Sprintf("%s:%d", configuration.Host, configuration.Port)
-	ss := service_manager.NewServiceService(database)
+	ss := service_module.NewServiceService(database)
 
 	router := gin.Default()
 	router.GET("/services", func(c *gin.Context) { ss.GetServices(c) })

@@ -1,6 +1,5 @@
 package models
 
-// Service Data Struct
 type Service struct {
 	Id          string  `json:"id"`
 	ServiceId   *int64  `json:"serviceId,omitempty"`
