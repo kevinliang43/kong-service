@@ -3,6 +3,7 @@ package service_module
 import (
 	"database/sql"
 	"dev/kong-service/models"
+	"fmt"
 )
 
 type ServiceManager struct {
@@ -27,6 +28,7 @@ func (sm ServiceManager) GetServiceAllRecords(serviceId int64) []*models.Service
 
 // Fetch all Service versions for a Service Id
 func (sm ServiceManager) GetServiceAllVersions(serviceId int64) []float64 {
+	// TODO: Cacheing system for serviceId --> version (TTL: ~15 Seconds)
 	return sm.ServiceDao.GetAllServiceVersionsByServiceId(serviceId)
 }
 
@@ -41,29 +43,30 @@ func (sm ServiceManager) GetServiceVersion(serviceId int64, version float64) *mo
 }
 
 // Create new Service record
-func (sm ServiceManager) CreateService(newService *models.Service) *models.Service {
+func (sm ServiceManager) CreateService(newService *models.Service) (*models.Service, error) {
 
 	if newService.ServiceId == nil {
 		// New service being created
-		return sm.ServiceDao.CreateNewService(newService)
+		return sm.ServiceDao.CreateNewService(newService), nil
 	} else {
 		// Existing Service, new version
-		// TODO: ensure service exists
 		versions := sm.ServiceDao.GetAllServiceVersionsByServiceId(*newService.ServiceId)
 
 		if len(versions) == 0 {
-			// TODO: ensure that new version record has a higher version
-			// throw error
+			return nil, fmt.Errorf(
+				"cannot create a new version record for non-existing serviceId:'%d'",
+				*newService.ServiceId)
 		}
 
-		if versions[len(versions)-1] > newService.Version {
-			// TODO: validate that version number for new version is higher than existing most-uptodate version
+		if versions[len(versions)-1] >= newService.Version {
+			return nil, fmt.Errorf(
+				"new records for existing Services must have a version that is higher than the most up to date version of the existing service. Provided serviceId:'%d', version:'%f'",
+				*newService.ServiceId,
+				newService.Version)
 
 		}
 
-		//TODO : check if versions contains the new version, if so error (version exists)
-		// maybe this is redundant since we are sorting and checking the biggest one already
-		return sm.ServiceDao.CreateNewServiceVersion(newService)
+		return sm.ServiceDao.CreateNewServiceVersion(newService), nil
 	}
 
 }

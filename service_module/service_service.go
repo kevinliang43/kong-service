@@ -63,6 +63,11 @@ func (ss ServiceService) CreateService(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusCreated, ss.ServiceManager.CreateService(&newService))
+	if result, err := ss.ServiceManager.CreateService(&newService); err == nil {
+		c.IndentedJSON(http.StatusCreated, result)
+	} else {
+		println(err.Error())
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 
 }
