@@ -5,6 +5,7 @@ import (
 	"dev/kong-service/models"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type ServiceDao struct {
@@ -17,14 +18,13 @@ func NewServiceDao(database *sql.DB) *ServiceDao {
 	}
 }
 
-func (sd ServiceDao) GetAllServiceRecords() []*models.Service {
+func (sd ServiceDao) GetAllServiceRecordsByServiceId(sid int64) []*models.ServiceRecord {
+	query := `SELECT id, service_id, name, description, version FROM services WHERE service_id=$1;`
 
-	query := `SELECT id, service_id, name, description, version FROM services;`
-
-	rows, err := sd.database.Query(query)
+	rows, err := sd.database.Query(query, sid)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []*models.Service{}
+			return []*models.ServiceRecord{}
 		}
 		log.Fatal(err)
 	}
@@ -32,18 +32,31 @@ func (sd ServiceDao) GetAllServiceRecords() []*models.Service {
 	return parseServiceRows(rows)
 }
 
-func (sd ServiceDao) GetAllServiceRecordsByServiceId(sid int64) []*models.Service {
-	query := `SELECT id, service_id, name, description, version FROM services WHERE service_id=$1;`
+func (sd ServiceDao) getServiceRecordByServiceIdAndVersion(sid int64, v float64) *models.ServiceRecord {
+	var (
+		id          string
+		serviceId   int64
+		name        string
+		description string
+		version     float64
+	)
 
-	rows, err := sd.database.Query(query, sid)
+	err := sd.database.QueryRow("SELECT id, service_id, name, description, version FROM services WHERE service_id = $1 AND version = $2", sid, v).Scan(&id, &serviceId, &name, &description, &version)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []*models.Service{}
+			return nil
 		}
 		log.Fatal(err)
 	}
-	defer rows.Close()
-	return parseServiceRows(rows)
+
+	return &models.ServiceRecord{
+		Id:          id,
+		ServiceId:   &serviceId,
+		Name:        name,
+		Description: description,
+		Version:     version,
+	}
 }
 
 func (sd ServiceDao) GetAllServiceVersionsByServiceId(sid int64) []float64 {
@@ -68,34 +81,22 @@ func (sd ServiceDao) GetAllServiceVersionsByServiceId(sid int64) []float64 {
 
 }
 
-func (sd ServiceDao) getServiceRecordByServiceIdAndVersion(sid int64, v float64) *models.Service {
-	var (
-		id          string
-		serviceId   int64
-		name        string
-		description string
-		version     float64
-	)
+func (sd ServiceDao) GetServiceRecordsByRecordIds(serviceRecordIds []string) []*models.ServiceRecord {
+	query := `SELECT id, service_id, name, description, version FROM services WHERE id = ANY($1);`
+	param := "{" + strings.Join(serviceRecordIds, ",") + "}"
 
-	err := sd.database.QueryRow("SELECT id, service_id, name, description, version FROM services WHERE service_id = $1 AND version = $2", sid, v).Scan(&id, &serviceId, &name, &description, &version)
-
+	rows, err := sd.database.Query(query, param)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil
+			return []*models.ServiceRecord{}
 		}
 		log.Fatal(err)
 	}
-
-	return &models.Service{
-		Id:          id,
-		ServiceId:   &serviceId,
-		Name:        name,
-		Description: description,
-		Version:     version,
-	}
+	defer rows.Close()
+	return parseServiceRows(rows)
 }
 
-func (sd ServiceDao) getServiceRecordByRecordId(serviceRecordId string) *models.Service {
+func (sd ServiceDao) getServiceRecordByRecordId(serviceRecordId string) *models.ServiceRecord {
 	var (
 		id          string
 		serviceId   int64
@@ -113,7 +114,7 @@ func (sd ServiceDao) getServiceRecordByRecordId(serviceRecordId string) *models.
 		log.Fatal(err)
 	}
 
-	return &models.Service{
+	return &models.ServiceRecord{
 		Id:          id,
 		ServiceId:   &serviceId,
 		Name:        name,
@@ -123,35 +124,7 @@ func (sd ServiceDao) getServiceRecordByRecordId(serviceRecordId string) *models.
 
 }
 
-func (sd ServiceDao) GetLatestServiceRecordByServiceId(sid int64) *models.Service {
-	var (
-		id          string
-		serviceId   int64
-		name        string
-		description string
-		version     float64
-	)
-
-	err := sd.database.QueryRow("SELECT id, service_id, name, description, version FROM services WHERE service_id = $1 ORDER BY version DESC LIMIT 1", sid).Scan(&id, &serviceId, &name, &description, &version)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil
-		}
-		log.Fatal(err)
-	}
-
-	return &models.Service{
-		Id:          id,
-		ServiceId:   &serviceId,
-		Name:        name,
-		Description: description,
-		Version:     version,
-	}
-
-}
-
-func (sd ServiceDao) CreateNewService(s *models.Service) *models.Service {
+func (sd ServiceDao) CreateNewService(s *models.ServiceRecord) *models.ServiceRecord {
 	var id string
 
 	err := sd.database.QueryRow("INSERT INTO services(name, description, version) VALUES($1, $2, $3) RETURNING id", s.Name, s.Description, s.Version).Scan(&id)
@@ -167,7 +140,7 @@ func (sd ServiceDao) CreateNewService(s *models.Service) *models.Service {
 
 }
 
-func (sd ServiceDao) CreateNewServiceVersion(s *models.Service) *models.Service {
+func (sd ServiceDao) CreateNewServiceVersion(s *models.ServiceRecord) *models.ServiceRecord {
 
 	var (
 		id        string
@@ -187,8 +160,8 @@ func (sd ServiceDao) CreateNewServiceVersion(s *models.Service) *models.Service 
 	return newService
 }
 
-func parseServiceRows(rows *sql.Rows) []*models.Service {
-	services := []*models.Service{}
+func parseServiceRows(rows *sql.Rows) []*models.ServiceRecord {
+	services := []*models.ServiceRecord{}
 
 	for rows.Next() {
 		var (
@@ -201,7 +174,7 @@ func parseServiceRows(rows *sql.Rows) []*models.Service {
 
 		rows.Scan(&id, &serviceId, &name, &description, &version)
 
-		services = append(services, &models.Service{
+		services = append(services, &models.ServiceRecord{
 			Id:          id,
 			ServiceId:   &serviceId,
 			Name:        name,

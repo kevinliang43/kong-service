@@ -20,28 +20,18 @@ func NewServiceService(database *sql.DB) *ServiceService {
 }
 
 // Fetch all Services
-func (ss ServiceService) GetServices(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetServices())
+func (ss ServiceService) GetAllServices(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetAllServices())
+}
+
+// Fetch Service
+func (ss ServiceService) GetService(c *gin.Context, serviceId int64) {
+	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetService(serviceId))
 }
 
 // Fetch all Service records for a Service Id
 func (ss ServiceService) GetServiceAllRecords(c *gin.Context, serviceId int64) {
 	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetServiceAllRecords(serviceId))
-}
-
-// Fetch all Service versions for a Service Id
-func (ss ServiceService) GetServiceAllVersions(c *gin.Context, serviceId int64) {
-	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetServiceAllVersions(serviceId))
-}
-
-// Fetch Service record (latest version) for a given Service Id
-func (ss ServiceService) GetServiceLatestVersion(c *gin.Context, serviceId int64) {
-
-	if result := ss.ServiceManager.GetServiceLatestVersion(serviceId); result != nil {
-		c.IndentedJSON(http.StatusOK, result)
-	} else {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("no records found for serviceId '%d'", serviceId)})
-	}
 }
 
 // Fetch Service record for a given Service Id and Version
@@ -54,16 +44,21 @@ func (ss ServiceService) GetServiceVersion(c *gin.Context, serviceId int64, vers
 	}
 }
 
+// Fetch all Service versions for a Service Id
+func (ss ServiceService) GetServiceAllVersions(c *gin.Context, serviceId int64) {
+	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetServiceAllVersions(serviceId))
+}
+
 // Create new Service record
 func (ss ServiceService) CreateService(c *gin.Context) {
-	var newService models.Service
+	var newServiceRecord models.ServiceRecord
 
-	if err := c.BindJSON(&newService); err != nil {
+	if err := c.BindJSON(&newServiceRecord); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if result, err := ss.ServiceManager.CreateService(&newService); err == nil {
+	if result, err := ss.ServiceManager.CreateService(&newServiceRecord); err == nil {
 		c.IndentedJSON(http.StatusCreated, result)
 	} else {
 		println(err.Error())

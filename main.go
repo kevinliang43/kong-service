@@ -28,25 +28,32 @@ func setupServer(configuration config.ServerConfig, database *sql.DB) {
 	ss := service_module.NewServiceService(database)
 
 	router := gin.Default()
-	router.GET("/services", func(c *gin.Context) { ss.GetServices(c) })
-	router.GET("/services/:serviceId", func(c *gin.Context) {
+
+	// Services
+	router.GET("services", func(c *gin.Context) { ss.GetAllServices(c) })
+	router.GET("services/:serviceId", func(c *gin.Context) {
+		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
+		ss.GetService(c, serviceId)
+	})
+
+	// Service Records
+	router.GET("service-records/:serviceId", func(c *gin.Context) {
 		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
 		ss.GetServiceAllRecords(c, serviceId)
 	})
-	router.GET("/services/:serviceId/versions", func(c *gin.Context) {
-		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
-		ss.GetServiceAllVersions(c, serviceId)
-	})
-	router.GET("/services/:serviceId/versions/:version", func(c *gin.Context) {
+	router.GET("service-records/:serviceId/versions/:version", func(c *gin.Context) {
 		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
 		version, _ := strconv.ParseFloat(c.Param("version"), 64)
 		ss.GetServiceVersion(c, serviceId, version)
 	})
-	router.GET("/services/:serviceId/versions/latest", func(c *gin.Context) {
+
+	// Service Versions
+	router.GET("service-versions/:serviceId", func(c *gin.Context) {
 		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
-		ss.GetServiceLatestVersion(c, serviceId)
+		ss.GetServiceAllVersions(c, serviceId)
 	})
 
+	// create
 	router.POST("/services", func(c *gin.Context) { ss.CreateService(c) })
 
 	router.Run(serverPath)
