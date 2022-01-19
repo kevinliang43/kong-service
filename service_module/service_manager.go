@@ -88,7 +88,11 @@ func (sm ServiceManager) CreateService(newServiceRecord *models.ServiceRecord) (
 
 	if newServiceRecord.ServiceId == nil {
 		// New service being created
-		return sm.ServiceDao.CreateNewService(newServiceRecord), nil
+		createdService := sm.ServiceDao.CreateNewService(newServiceRecord)
+		sm.ServiceLatestDao.CreateService(createdService)
+
+		return createdService, nil
+
 	} else {
 		// Existing Service, new version
 		versions := sm.ServiceDao.GetAllServiceVersionsByServiceId(*newServiceRecord.ServiceId)
@@ -107,7 +111,10 @@ func (sm ServiceManager) CreateService(newServiceRecord *models.ServiceRecord) (
 
 		}
 
-		return sm.ServiceDao.CreateNewServiceVersion(newServiceRecord), nil
+		createdServiceRecord := sm.ServiceDao.CreateNewServiceVersion(newServiceRecord)
+		sm.ServiceLatestDao.UpdateService(createdServiceRecord)
+
+		return createdServiceRecord, nil
 	}
 
 }
