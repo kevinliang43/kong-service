@@ -36,7 +36,15 @@ func (sld ServiceLatestDao) SearchServices(ssr *models.ServicesSearchRequest) []
 	baseQuery := `SELECT service_id, latest_record_id, name, description, version, versions FROM services_latest `
 
 	if ssr.NameFilter != nil {
-		baseQuery = baseQuery + fmt.Sprintf("WHERE name LIKE '%%%s%%'", *ssr.NameFilter)
+		baseQuery = baseQuery + fmt.Sprintf("WHERE name LIKE '%%%s%%' ", *ssr.NameFilter)
+	}
+
+	if ssr.Limit != nil {
+		baseQuery = baseQuery + fmt.Sprintf("LIMIT %d ", *ssr.Limit)
+	}
+
+	if ssr.Offset != nil {
+		baseQuery = baseQuery + fmt.Sprintf("OFFSET %d ", *ssr.Offset)
 	}
 
 	baseQuery = baseQuery + ";"

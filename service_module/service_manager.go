@@ -29,12 +29,23 @@ func (sm ServiceManager) GetService(serviceId int64) *models.Service {
 }
 
 // Search Services
-func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) *models.ServicesSearchResponse {
+func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) (*models.ServicesSearchResponse, error) {
+
+	// validate Limit and Offset params
+	if ssr.Limit != nil && (*ssr.Limit > 100 || *ssr.Limit < 0) {
+		return nil, fmt.Errorf("'limit' parameter must be between 0 and 100, inclusive. Provided: '%d'",
+			*ssr.Limit)
+	}
+	if ssr.Offset != nil && *ssr.Offset < 0 {
+		return nil, fmt.Errorf("'offset' parameter must be greater than 0. Provided: '%d'",
+			*ssr.Offset)
+	}
+
 	services := sm.ServiceLatestDao.SearchServices(ssr)
 
 	return &models.ServicesSearchResponse{
-		Services: services,
-	}
+		Services:   services,
+		NextOffset: ssr.GetNextOffset(int64(len(services)))}, nil
 }
 
 // Fetch all Service records for a Service Id

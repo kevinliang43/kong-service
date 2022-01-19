@@ -19,8 +19,19 @@ type Service struct {
 
 type ServicesSearchRequest struct {
 	NameFilter *string `json:"nameFilter,omitempty"`
+	Limit      *int64  `json:"limit,omitempty"`
+	Offset     *int64  `json:"offset,omitempty"`
 }
 
 type ServicesSearchResponse struct {
-	Services []*Service `json:"services"`
+	Services   []*Service `json:"services"`
+	NextOffset int64      `json:"nextOffset"`
+}
+
+func (ssr ServicesSearchRequest) GetNextOffset(responseSize int64) int64 {
+	if ssr.Offset == nil {
+		return responseSize
+	} else {
+		return *ssr.Offset + responseSize
+	}
 }

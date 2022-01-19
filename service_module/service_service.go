@@ -38,7 +38,11 @@ func (ss ServiceService) SearchServices(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, ss.ServiceManager.SearchServices(&servicesSearchRequest))
+	if result, err := ss.ServiceManager.SearchServices(&servicesSearchRequest); err == nil {
+		c.IndentedJSON(http.StatusOK, result)
+	} else {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 
 }
 
