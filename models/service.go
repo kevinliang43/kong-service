@@ -16,3 +16,11 @@ type Service struct {
 	Version     float64 `json:"version" binding:"required"`
 	Versions    int64   `json:"versions" binding:"required"`
 }
+
+type ServicesSearchRequest struct {
+	NameFilter *string `json:"nameFilter,omitempty"`
+}
+
+type ServicesSearchResponse struct {
+	Services []*Service `json:"services"`
+}

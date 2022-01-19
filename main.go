@@ -35,6 +35,7 @@ func setupServer(configuration config.ServerConfig, database *sql.DB) {
 		serviceId, _ := strconv.ParseInt(c.Param("serviceId"), 10, 64)
 		ss.GetService(c, serviceId)
 	})
+	router.POST("services/search", func(c *gin.Context) { ss.SearchServices(c) })
 
 	// Service Records
 	router.GET("service-records/:serviceId", func(c *gin.Context) {

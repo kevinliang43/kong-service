@@ -28,6 +28,15 @@ func (sm ServiceManager) GetService(serviceId int64) *models.Service {
 	return sm.ServiceLatestDao.GetService(serviceId)
 }
 
+// Search Services
+func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) *models.ServicesSearchResponse {
+	services := sm.ServiceLatestDao.SearchServices(ssr)
+
+	return &models.ServicesSearchResponse{
+		Services: services,
+	}
+}
+
 // Fetch all Service records for a Service Id
 func (sm ServiceManager) GetServiceAllRecords(serviceId int64) []*models.ServiceRecord {
 	return sm.ServiceDao.GetAllServiceRecordsByServiceId(serviceId)

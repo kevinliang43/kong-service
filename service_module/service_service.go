@@ -29,6 +29,19 @@ func (ss ServiceService) GetService(c *gin.Context, serviceId int64) {
 	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetService(serviceId))
 }
 
+// Search Services
+func (ss ServiceService) SearchServices(c *gin.Context) {
+	var servicesSearchRequest models.ServicesSearchRequest
+
+	if err := c.BindJSON(&servicesSearchRequest); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, ss.ServiceManager.SearchServices(&servicesSearchRequest))
+
+}
+
 // Fetch all Service records for a Service Id
 func (ss ServiceService) GetServiceAllRecords(c *gin.Context, serviceId int64) {
 	c.IndentedJSON(http.StatusOK, ss.ServiceManager.GetServiceAllRecords(serviceId))

@@ -3,6 +3,7 @@ package service_module
 import (
 	"database/sql"
 	"dev/kong-service/models"
+	"fmt"
 	"log"
 )
 
@@ -29,6 +30,28 @@ func (sld ServiceLatestDao) GetAllServices() []*models.Service {
 	}
 	defer rows.Close()
 	return parseServiceLatestRows(rows)
+}
+
+func (sld ServiceLatestDao) SearchServices(ssr *models.ServicesSearchRequest) []*models.Service {
+	baseQuery := `SELECT service_id, latest_record_id, name, description, version, versions FROM services_latest `
+
+	if ssr.NameFilter != nil {
+		baseQuery = baseQuery + fmt.Sprintf("WHERE name LIKE '%%%s%%'", *ssr.NameFilter)
+	}
+
+	baseQuery = baseQuery + ";"
+
+	rows, err := sld.database.Query(baseQuery)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []*models.Service{}
+		}
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	return parseServiceLatestRows(rows)
+
 }
 
 func (sld ServiceLatestDao) GetService(sid int64) *models.Service {
