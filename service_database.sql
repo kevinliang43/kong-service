@@ -30,11 +30,14 @@ INSERT INTO services (id, service_id, name, description, version) VALUES
 CREATE TABLE services_latest (
     service_id INTEGER,
     latest_record_id UUID,
+    name VARCHAR(128),
+    description VARCHAR(1024),
+    version DECIMAL,
     versions INTEGER,
     UNIQUE(service_id, latest_record_id)
 );
 
-INSERT INTO services_latest (service_id, latest_record_id, versions) VALUES
-    ('1', '6ACB5E21-DBC5-4ED7-83E3-EDE75A3255D1', '2'),
-    ('2', 'AD187F14-B774-4D25-A939-864AA57903A0', '1'),
-    ('3', '1D75DF8D-1639-428D-AAD3-C78CD71A250F', '1');
+INSERT INTO services_latest (service_id, latest_record_id, name, description, version, versions) VALUES
+    ('1', '6ACB5E21-DBC5-4ED7-83E3-EDE75A3255D1', 'Locate Us', 'Service for retrieving location info v1.1', '1.1', '2'),
+    ('2', 'AD187F14-B774-4D25-A939-864AA57903A0', 'Collect Monday', '', '1.0', '1'),
+    ('3', '1D75DF8D-1639-428D-AAD3-C78CD71A250F', 'Contact Us', 'Service for retrieving contact us info', '1.0', '1');

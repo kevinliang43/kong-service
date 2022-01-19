@@ -16,14 +16,14 @@ func NewServiceLatestDao(database *sql.DB) *ServiceLatestDao {
 	}
 }
 
-func (sld ServiceLatestDao) GetAllServices() []*models.ServiceLatest {
+func (sld ServiceLatestDao) GetAllServices() []*models.Service {
 
-	query := `SELECT service_id, latest_record_id, versions FROM services_latest;`
+	query := `SELECT service_id, latest_record_id, name, description, version, versions FROM services_latest;`
 
 	rows, err := sld.database.Query(query)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []*models.ServiceLatest{}
+			return []*models.Service{}
 		}
 		log.Fatal(err)
 	}
@@ -31,14 +31,17 @@ func (sld ServiceLatestDao) GetAllServices() []*models.ServiceLatest {
 	return parseServiceLatestRows(rows)
 }
 
-func (sld ServiceLatestDao) GetService(sid int64) *models.ServiceLatest {
+func (sld ServiceLatestDao) GetService(sid int64) *models.Service {
 	var (
 		serviceId      int64
 		latestRecordId string
+		name           string
+		description    string
+		version        float64
 		versions       int64
 	)
 
-	err := sld.database.QueryRow("SELECT service_id, latest_record_id, versions FROM services_latest WHERE service_id = $1", sid).Scan(&serviceId, &latestRecordId, &versions)
+	err := sld.database.QueryRow("SELECT service_id, latest_record_id, name, description, version, versions FROM services_latest WHERE service_id = $1", sid).Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -47,38 +50,50 @@ func (sld ServiceLatestDao) GetService(sid int64) *models.ServiceLatest {
 		log.Fatal(err)
 	}
 
-	return &models.ServiceLatest{
-		ServiceId: &serviceId,
-		Id:        latestRecordId,
-		Versions:  versions,
+	return &models.Service{
+		ServiceId:   serviceId,
+		Id:          latestRecordId,
+		Name:        name,
+		Description: description,
+		Version:     version,
+		Versions:    versions,
 	}
 }
 
-func (sld ServiceLatestDao) CreateService(sr *models.ServiceRecord) *models.ServiceLatest {
+func (sld ServiceLatestDao) CreateService(sr *models.ServiceRecord) *models.Service {
 	var (
 		serviceId      int64
 		latestRecordId string
+		name           string
+		description    string
+		version        float64
 		versions       int64
 	)
 
-	err := sld.database.QueryRow("INSERT INTO services_latest(service_id, latest_record_id, versions) VALUES($1, $2, $3) RETURNING service_id, latest_record_id, versions", sr.ServiceId, sr.Id, 1).Scan(&serviceId, &latestRecordId, &versions)
+	err := sld.database.QueryRow("INSERT INTO services_latest(service_id, latest_record_id, name, description, version, versions) VALUES($1, $2, $3) RETURNING service_id, latest_record_id, versions", sr.ServiceId, sr.Id, sr.Name, sr.Description, sr.Version, 1).Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &models.ServiceLatest{
-		ServiceId: &serviceId,
-		Id:        latestRecordId,
-		Versions:  versions,
+	return &models.Service{
+		Id:          latestRecordId,
+		ServiceId:   serviceId,
+		Name:        name,
+		Description: description,
+		Version:     version,
+		Versions:    versions,
 	}
 
 }
 
-func (sld ServiceLatestDao) UpdateService(sr *models.ServiceRecord) *models.ServiceLatest {
+func (sld ServiceLatestDao) UpdateService(sr *models.ServiceRecord) *models.Service {
 
 	var (
 		serviceId      int64
 		latestRecordId string
+		name           string
+		description    string
+		version        float64
 		versions       int64
 	)
 
@@ -88,37 +103,46 @@ func (sld ServiceLatestDao) UpdateService(sr *models.ServiceRecord) *models.Serv
 		return nil
 	}
 
-	updateQuery := `UPDATE services_latest SET latest_record_id=$1, versions=$2 WHERE service_id=$3 RETURNING service_id, latest_record_id, versions;`
+	updateQuery := `UPDATE services_latest SET latest_record_id=$1, name=$2, description=$3, version=$4, versions=$5 WHERE service_id=$6 RETURNING service_id, latest_record_id, name, description, version, versions;`
 
-	err := sld.database.QueryRow(updateQuery, sr.Id, existingService.Versions+1, sr.ServiceId).Scan(&serviceId, &latestRecordId, &versions)
+	err := sld.database.QueryRow(updateQuery, sr.Id, sr.Name, sr.Description, sr.Version, existingService.Versions+1, sr.ServiceId).Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &models.ServiceLatest{
-		ServiceId: &serviceId,
-		Id:        latestRecordId,
-		Versions:  versions,
+	return &models.Service{
+		Id:          latestRecordId,
+		ServiceId:   serviceId,
+		Name:        name,
+		Description: description,
+		Version:     version,
+		Versions:    versions,
 	}
 
 }
 
-func parseServiceLatestRows(rows *sql.Rows) []*models.ServiceLatest {
-	services := []*models.ServiceLatest{}
+func parseServiceLatestRows(rows *sql.Rows) []*models.Service {
+	services := []*models.Service{}
 
 	for rows.Next() {
 		var (
 			serviceId      int64
 			latestRecordId string
+			name           string
+			description    string
+			version        float64
 			versions       int64
 		)
 
-		rows.Scan(&serviceId, &latestRecordId, &versions)
+		rows.Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
 
-		services = append(services, &models.ServiceLatest{
-			ServiceId: &serviceId,
-			Id:        latestRecordId,
-			Versions:  versions,
+		services = append(services, &models.Service{
+			ServiceId:   serviceId,
+			Id:          latestRecordId,
+			Name:        name,
+			Description: description,
+			Version:     version,
+			Versions:    versions,
 		})
 	}
 

@@ -20,51 +20,12 @@ func NewServiceManager(database *sql.DB) *ServiceManager {
 
 // Fetch all Services
 func (sm ServiceManager) GetAllServices() []*models.Service {
-	latestServices := sm.ServiceLatestDao.GetAllServices()
-
-	// Get latest version records
-	recordIds := []string{}
-	serviceToVersionNumMap := make(map[string]int64)
-
-	for _, v := range latestServices {
-		recordIds = append(recordIds, v.Id)
-		serviceToVersionNumMap[v.Id] = v.Versions
-	}
-	serviceRecords := sm.ServiceDao.GetServiceRecordsByRecordIds(recordIds)
-
-	// Return Services
-
-	servicesResponse := []*models.Service{}
-
-	for _, v := range serviceRecords {
-		servicesResponse = append(servicesResponse, &models.Service{
-			Id:          v.Id,
-			ServiceId:   *v.ServiceId,
-			Name:        v.Name,
-			Description: v.Description,
-			Version:     v.Version,
-			Versions:    serviceToVersionNumMap[v.Id],
-		})
-
-	}
-
-	return servicesResponse
+	return sm.ServiceLatestDao.GetAllServices()
 }
 
 // Fetch Service
 func (sm ServiceManager) GetService(serviceId int64) *models.Service {
-	latestService := sm.ServiceLatestDao.GetService(serviceId)
-	serviceRecord := sm.ServiceDao.getServiceRecordByRecordId(latestService.Id)
-
-	return &models.Service{
-		Id:          serviceRecord.Id,
-		ServiceId:   *serviceRecord.ServiceId,
-		Name:        serviceRecord.Name,
-		Description: serviceRecord.Description,
-		Version:     serviceRecord.Version,
-		Versions:    latestService.Versions,
-	}
-
+	return sm.ServiceLatestDao.GetService(serviceId)
 }
 
 // Fetch all Service records for a Service Id
