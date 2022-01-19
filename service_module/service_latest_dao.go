@@ -39,6 +39,10 @@ func (sld ServiceLatestDao) SearchServices(ssr *models.ServicesSearchRequest) []
 		baseQuery = baseQuery + fmt.Sprintf("WHERE name LIKE '%%%s%%' ", *ssr.NameFilter)
 	}
 
+	if ssr.SortType != nil {
+		baseQuery = baseQuery + fmt.Sprintf("ORDER BY name %s ", *ssr.SortType)
+	}
+
 	if ssr.Limit != nil {
 		baseQuery = baseQuery + fmt.Sprintf("LIMIT %d ", *ssr.Limit)
 	}

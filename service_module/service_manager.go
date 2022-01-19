@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"dev/kong-service/models"
 	"fmt"
+	"strings"
 )
 
 type ServiceManager struct {
@@ -39,6 +40,10 @@ func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) (*mod
 	if ssr.Offset != nil && *ssr.Offset < 0 {
 		return nil, fmt.Errorf("'offset' parameter must be greater than 0. Provided: '%d'",
 			*ssr.Offset)
+	}
+	if ssr.SortType != nil && (strings.ToUpper(*ssr.SortType) != "ASC" && strings.ToUpper(*ssr.SortType) != "DESC") {
+		return nil, fmt.Errorf("'sortType' parameter must be one of ['ASC', 'DESC']. Provided: '%s'",
+			*ssr.SortType)
 	}
 
 	services := sm.ServiceLatestDao.SearchServices(ssr)
