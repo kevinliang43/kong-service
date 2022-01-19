@@ -35,12 +35,20 @@ func (sld ServiceLatestDao) GetAllServices() []*models.Service {
 func (sld ServiceLatestDao) SearchServices(ssr *models.ServicesSearchRequest) []*models.Service {
 	baseQuery := `SELECT service_id, latest_record_id, name, description, version, versions FROM services_latest `
 
-	if ssr.NameFilter != nil {
-		baseQuery = baseQuery + fmt.Sprintf("WHERE name LIKE '%%%s%%' ", *ssr.NameFilter)
+	// filterType defaults to name if not provided
+	var filterType string
+	if ssr.FilterType == nil {
+		filterType = "name"
+	} else {
+		filterType = *ssr.FilterType
+	}
+
+	if ssr.SearchQuery != nil {
+		baseQuery = baseQuery + fmt.Sprintf("WHERE %s LIKE '%%%s%%' ", filterType, *ssr.SearchQuery)
 	}
 
 	if ssr.SortType != nil {
-		baseQuery = baseQuery + fmt.Sprintf("ORDER BY name %s ", *ssr.SortType)
+		baseQuery = baseQuery + fmt.Sprintf("ORDER BY %s %s ", filterType, *ssr.SortType)
 	}
 
 	if ssr.Limit != nil {

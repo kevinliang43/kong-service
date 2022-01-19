@@ -32,7 +32,7 @@ func (sm ServiceManager) GetService(serviceId int64) *models.Service {
 // Search Services
 func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) (*models.ServicesSearchResponse, error) {
 
-	// validate Limit and Offset params
+	// validate Search Request params
 	if ssr.Limit != nil && (*ssr.Limit > 100 || *ssr.Limit < 0) {
 		return nil, fmt.Errorf("'limit' parameter must be between 0 and 100, inclusive. Provided: '%d'",
 			*ssr.Limit)
@@ -44,6 +44,10 @@ func (sm ServiceManager) SearchServices(ssr *models.ServicesSearchRequest) (*mod
 	if ssr.SortType != nil && (strings.ToUpper(*ssr.SortType) != "ASC" && strings.ToUpper(*ssr.SortType) != "DESC") {
 		return nil, fmt.Errorf("'sortType' parameter must be one of ['ASC', 'DESC']. Provided: '%s'",
 			*ssr.SortType)
+	}
+	if ssr.FilterType != nil && (strings.ToUpper(*ssr.FilterType) != "NAME" && strings.ToUpper(*ssr.FilterType) != "DESCRIPTION") {
+		return nil, fmt.Errorf("'filterType' parameter must be one of ['NAME', 'DESCRIPTION']. Provided: '%s'",
+			*ssr.FilterType)
 	}
 
 	services := sm.ServiceLatestDao.SearchServices(ssr)

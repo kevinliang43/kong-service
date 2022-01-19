@@ -18,10 +18,11 @@ type Service struct {
 }
 
 type ServicesSearchRequest struct {
-	NameFilter *string `json:"nameFilter,omitempty"`
-	Limit      *int64  `json:"limit,omitempty"`
-	Offset     *int64  `json:"offset,omitempty"`
-	SortType   *string `json:"sortType,omitempty"`
+	SearchQuery *string `json:"searchQuery,omitempty"`
+	Limit       *int64  `json:"limit,omitempty"`
+	Offset      *int64  `json:"offset,omitempty"`
+	SortType    *string `json:"sortType,omitempty"`
+	FilterType  *string `json:"filterType,omitempty"`
 }
 
 type ServicesSearchResponse struct {
@@ -35,20 +36,4 @@ func (ssr ServicesSearchRequest) GetNextOffset(responseSize int64) int64 {
 	} else {
 		return *ssr.Offset + responseSize
 	}
-}
-
-// SortType Enum
-type SortType int
-
-const (
-	ascending SortType = iota
-	descending
-)
-
-func (st SortType) GetSortType() *string {
-	sortTypes := [...]string{"ASC", "DESC"}
-	if st < ascending || st > descending {
-		return nil
-	}
-	return &sortTypes[st]
 }
