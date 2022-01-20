@@ -201,8 +201,9 @@ This will allow for us to continue storing information about each version for a 
 	- [service_dao.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_dao.go) / [service_latest_dao.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_latest_dao.go) handles all logic related to hitting the connected DB.
 
 Abstracting away logic into these layers allows for:
+
 	- Dependency Injection - Allows for ease of testing with Stub/Mock objects, if unit tests were to be implemented in the future.
-	- Extensibilitiy - We can add new dependencies when needed with ease
+	- Extensibilitiy - We can add new dependencies when needed with ease, when new features are needed.
 
 
 ## Areas of Improvement
