@@ -186,3 +186,31 @@ ServicesSearchResponse {
     1.6
 ]
 ```
+
+## Design Considerations and Assumptions
+1. Search Requests for a list of `Service` will be more frequent than retreiving a single `ServiceRecord`. To make retrievals for the most up to date versions of `Service`, I've created two database tables:
+	- `services` will house all `ServiceRecord` records, which represent each version for a given service
+	- `services_latest` will house information about the most up to date version for a given service, as well as the number of versions that it has.
+
+This will allow for us to continue storing information about each version for a given `Service`, but also improve efficiency for search retrievals (which we presumed to be a more frequent request).
+
+2. Returned `nextOffset` param for a given `ServicesSearchResponse` can be directly plugged into the next `ServicesSearchRequest` `offset` param. This is to allow for ease of use for any developer consuming this API (i.e a Front end team developing a GUI that makes Pagination calls).
+3. `Service` logic is divided into 3 parts:
+	- [service_service.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_service.go) handles all JSON request/responses related logic.
+	- [service_manager.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_manager.go) handles core logic (validation, handling different request scenarios such as creating new version / new service, etc..)
+	- [service_dao.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_dao.go) / [service_latest_dao.go](https://github.com/kevinliang43/kong-service/blob/main/service_module/service_latest_dao.go) handles all logic related to hitting the connected DB.
+
+Abstracting away logic into these layers allows for:
+	- Dependency Injection - Allows for ease of testing with Stub/Mock objects, if unit tests were to be implemented in the future.
+	- Extensibilitiy - We can add new dependencies when needed with ease
+
+
+## Areas of Improvement
+1. Having two database tables (that essentially store similar information), results in the following
+	- Two sources of truth: Will need to keep in mind to keep these two tables consistent.
+	- Two database calls upon each Create / Update / Delete request (performance inefficiency)
+	- Potential solution: 
+		- Make both DB calls in a single transactional call. Will prevent cases where the first update succeeds, but the second update fails that result in discrepencies between the tables
+		- abstract away this logic into a Message Queue worker that have retries enabled.
+
+2. Currently, the `filterType` is used as both the column to filter on as well as to sort on (with the provided `sortType`). We can probably add a new field for sorting as well (i.e Imagine a case where we wanted to filter on `name` of the `Service`, but sort on the `version` field).
