@@ -57,8 +57,8 @@ ServicesSearchResponse {
   - Sample Request/Response:
 
 ```
->curl -X POST -H "Content-Type: application/json" --data '{"searchQuery": "Co", "limit": 3, "offset":0, "sortType":"DESC", "filterType": "name"}' http://localhost:8080/services/search
->{
+> curl -X POST -H "Content-Type: application/json" --data '{"searchQuery": "Co", "limit": 3, "offset":0, "sortType":"DESC", "filterType": "name"}' http://localhost:8080/services/search
+> {
     "services": [
         {
             "id": "1d75df8d-1639-428d-aad3-c78cd71a250f",
@@ -81,7 +81,7 @@ ServicesSearchResponse {
 }
 ```
 3. `POST /services`
-  - Create a new [Service](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L11-L18) or a new version for an existing [Service](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L11-L18). Responds with the newly created Service or updated Service version.
+  - Create a new [Service](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L11-L18) or a new version for an existing [Service](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L11-L18). Responds with the newly created `Service` or updated `Service` version. If the provided service version is lower than the most up to date version for an existing `Service`, then a 400 Bad Request will be returned.
   - POST body details:
 ```
 {
@@ -115,6 +115,12 @@ ServicesSearchResponse {
     "version": 1.6,
     "versions": 3
 }
+> curl -X POST -H "Content-Type: application/json" --data '{"serviceId": 1, "name": "EXISTING SERVICE", "description": "NEW SERVICE VERSION", "version": 1.5}' http://localhost:8080/services
+> {
+    "error": "new records for existing Services must have a version that is higher than the most up to date version of the existing service. Provided serviceId:'1', version:'1.500000'"
+}
+
+// New Service Version where the provided service 'version' is lower than the most up to date version for the given 'serviceId'
 ```
 
 ### ServiceRecords
