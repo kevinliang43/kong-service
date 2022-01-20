@@ -74,14 +74,21 @@ func (sm ServiceManager) GetServiceAllVersions(serviceId int64) []float64 {
 }
 
 // Create new Service record
-func (sm ServiceManager) CreateService(newServiceRecord *models.ServiceRecord) (*models.ServiceRecord, error) {
+func (sm ServiceManager) CreateService(newServiceRecord *models.ServiceRecord) (*models.Service, error) {
 
 	if newServiceRecord.ServiceId == nil {
 		// New service being created
 		createdService := sm.ServiceDao.CreateNewService(newServiceRecord)
 		sm.ServiceLatestDao.CreateService(createdService)
 
-		return createdService, nil
+		return &models.Service{
+			Id:          createdService.Id,
+			ServiceId:   *createdService.ServiceId,
+			Name:        createdService.Name,
+			Description: createdService.Description,
+			Version:     createdService.Version,
+			Versions:    1,
+		}, nil
 
 	} else {
 		// Existing Service, new version
@@ -102,9 +109,8 @@ func (sm ServiceManager) CreateService(newServiceRecord *models.ServiceRecord) (
 		}
 
 		createdServiceRecord := sm.ServiceDao.CreateNewServiceVersion(newServiceRecord)
-		sm.ServiceLatestDao.UpdateService(createdServiceRecord)
 
-		return createdServiceRecord, nil
+		return sm.ServiceLatestDao.UpdateService(createdServiceRecord), nil
 	}
 
 }

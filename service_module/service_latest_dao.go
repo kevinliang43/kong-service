@@ -113,7 +113,7 @@ func (sld ServiceLatestDao) CreateService(sr *models.ServiceRecord) *models.Serv
 		versions       int64
 	)
 
-	err := sld.database.QueryRow("INSERT INTO services_latest(service_id, latest_record_id, name, description, version, versions) VALUES($1, $2, $3) RETURNING service_id, latest_record_id, versions", sr.ServiceId, sr.Id, sr.Name, sr.Description, sr.Version, 1).Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
+	err := sld.database.QueryRow("INSERT INTO services_latest(service_id, latest_record_id, name, description, version, versions) VALUES($1, $2, $3, $4, $5, $6) RETURNING service_id, latest_record_id, name, description, version, versions", sr.ServiceId, sr.Id, sr.Name, sr.Description, sr.Version, 1).Scan(&serviceId, &latestRecordId, &name, &description, &version, &versions)
 	if err != nil {
 		log.Fatal(err)
 	}
