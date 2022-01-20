@@ -6,6 +6,9 @@
 3. In a separate Terminal tab, clone this repository and `cd` into the directory.
 4. To start up `kong-service`, run `go run .`
 
+Notes:
+1. By default, the service will run on `localhost:8080` and will be expecting a PostgreSQL database to connect to at `localhost:5432`. If needed, feel free to modify the configs at https://github.com/kevinliang43/kong-service/blob/main/config/config.yaml prior to running `go run .`
+
 ## Models
 
 1. [Service](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L11-L18)
