@@ -176,15 +176,20 @@ ServicesSearchResponse {
 
 ### Service Versions
 1. `GET /service-versions/{serviceId}`
-  - Retrieve a list of floats representing the `version` numbers for a given `serviceId`
+  - Retrieve a list of floats representing the `version` numbers for a given `serviceId`. If the given `serviceId` is non-existing, then an empty list will be returned.
   - Sample Request/Response:
 ```
+// Existing serviceId
 > curl -X GET -H "Content-Type: application/json" http://localhost:8080/service-versions/1
 > [
     1,
     1.1,
     1.6
 ]
+
+// Non-Existing serviceId
+> curl -X GET -H "Content-Type: application/json" http://localhost:8080/service-versions/222
+> []
 ```
 
 ## Design Considerations and Assumptions
