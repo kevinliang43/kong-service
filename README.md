@@ -161,6 +161,7 @@ ServicesSearchResponse {
 
 2. `GET /service-records/{serviceId}/versions/{version}`
   - Retrieve a single [ServiceRecord](https://github.com/kevinliang43/kong-service/blob/main/models/service.go#L3-L9) for a given `serviceId` and `version`. If the `serviceId` or the `version` does not match any records, a 404 response will be returned.
+  - Sample Request/Response:
 
 ```
 // Existing Service Id and Version
